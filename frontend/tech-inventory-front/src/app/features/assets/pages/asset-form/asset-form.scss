@@ -1,0 +1,32 @@
+.asset-form {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px;
+}
+
+.asset-form-card {
+  width: 100%;
+  max-width: 400px;
+}
+
+.asset-form-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.asset-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.asset-form-error {
+  margin: 0;
+  color: var(--mat-sys-error);
+}
+
+.asset-form-status {
+  margin: 0;
+}

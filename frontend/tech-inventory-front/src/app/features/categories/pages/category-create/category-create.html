@@ -1,0 +1,44 @@
+<section class="category-create">
+  <mat-card class="category-create-card">
+    <mat-card-header>
+      <mat-card-title>New Category</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form class="category-create-form" [formGroup]="categoryForm" (ngSubmit)="createCategory()">
+        <mat-form-field appearance="outline">
+          <mat-label>Name</mat-label>
+          <input matInput type="text" formControlName="name" autocomplete="off" />
+          @if (categoryForm.controls.name.hasError('required') && categoryForm.controls.name.touched) {
+            <mat-error>Name is required</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Prefix Code</mat-label>
+          <input matInput type="text" formControlName="prefixCode" autocomplete="off" />
+          @if (categoryForm.controls.prefixCode.hasError('required') && categoryForm.controls.prefixCode.touched) {
+            <mat-error>Prefix Code is required</mat-error>
+          } @else if (categoryForm.controls.prefixCode.hasError('minlength') || categoryForm.controls.prefixCode.hasError('maxlength')) {
+            <mat-error>Prefix Code must be exactly 3 characters</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-card-actions class="category-create-actions">
+          <button mat-flat-button type="submit" color="primary" [disabled]="isLoading()">
+            @if (isLoading()) {
+              <mat-progress-spinner diameter="20" mode="indeterminate" />
+            } @else {
+              Create
+            }
+          </button>
+          <button mat-flat-button type="button" [disabled]="isLoading()" (click)="cancel()">Cancel</button>
+        </mat-card-actions>
+
+        @if (errorMessage()) {
+          <p class="category-create-error" role="alert">{{ errorMessage() }}</p>
+        }
+      </form>
+    </mat-card-content>
+  </mat-card>
+</section>

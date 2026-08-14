@@ -1,0 +1,14 @@
+.layout-container {
+  height: 100vh;
+}
+
+.layout-content {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.layout-main {
+  flex: 1;
+  overflow: auto;
+}

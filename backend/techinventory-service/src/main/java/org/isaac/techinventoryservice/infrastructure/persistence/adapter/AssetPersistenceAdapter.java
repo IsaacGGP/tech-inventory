@@ -1,10 +1,13 @@
 package org.isaac.techinventoryservice.infrastructure.persistence.adapter;
 
+import org.isaac.techinventoryservice.application.dto.AssetSearchCriteria;
 import org.isaac.techinventoryservice.application.port.output.AssetRepositoryPort;
 import org.isaac.techinventoryservice.domain.model.Asset;
 import org.isaac.techinventoryservice.infrastructure.persistence.entity.AssetEntity;
 import org.isaac.techinventoryservice.infrastructure.persistence.mapper.AssetPersistenceMapper;
 import org.isaac.techinventoryservice.infrastructure.persistence.repository.AssetJpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -37,6 +40,23 @@ public class AssetPersistenceAdapter implements AssetRepositoryPort {
     @Override
     public List<Asset> findAll() {
         return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
+    public Page<Asset> findAll(Pageable pageable) {
+        return jpaRepository.findAll(pageable).map(mapper::toDomain);
+    }
+
+    @Override
+    public Page<Asset> searchAssets(AssetSearchCriteria criteria, Pageable pageable) {
+        return jpaRepository.searchByCriteria(
+                criteria.normalizedSearch(),
+                criteria.categoryId(),
+                criteria.status(),
+                criteria.minCost(),
+                criteria.maxCost(),
+                pageable
+        ).map(mapper::toDomain);
     }
 
     @Override

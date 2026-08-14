@@ -1,0 +1,38 @@
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+}
+
+.category-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.category-list-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.category-table-container {
+  overflow-x: auto;
+}
+
+.category-table {
+  width: 100%;
+}
+
+.category-action {
+  margin-inline: 4px;
+}
+
+.category-status {
+  margin: 0;
+}
+
+.category-status--error {
+  color: var(--mat-sys-error);
+}

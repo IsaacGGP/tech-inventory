@@ -1,0 +1,39 @@
+<div class="login-container">
+  <mat-card class="login-card">
+    <mat-card-header class="login-title">
+      <mat-card-title>Login</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline">
+          <mat-label>Usuario</mat-label>
+          <input matInput type="text" formControlName="username" autocomplete="username" />
+          @if (loginForm.controls.username.hasError('required') && loginForm.controls.username.touched) {
+            <mat-error>El usuario es requerido</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Contraseña</mat-label>
+          <input matInput type="password" formControlName="password" autocomplete="current-password" />
+          @if (loginForm.controls.password.hasError('required') && loginForm.controls.password.touched) {
+            <mat-error>La contraseña es requerida</mat-error>
+          }
+        </mat-form-field>
+
+        @if (errorMessage()) {
+          <div class="login-error" role="alert">{{ errorMessage() }}</div>
+        }
+
+        <button mat-flat-button type="submit" color="primary" [disabled]="isLoading()">
+          @if (isLoading()) {
+            <mat-progress-spinner diameter="20" mode="indeterminate" />
+          } @else {
+            Iniciar sesión
+          }
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

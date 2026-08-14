@@ -1,0 +1,72 @@
+<section class="asset-form">
+  <mat-card class="asset-form-card">
+    <mat-card-header>
+      <mat-card-title>{{ isEditMode() ? 'Edit Asset' : 'New Asset' }}</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form class="asset-form-content" [formGroup]="assetForm" (ngSubmit)="saveAsset()">
+        <mat-form-field appearance="outline">
+          <mat-label>Serial Number</mat-label>
+          <input matInput type="text" formControlName="serialNumber" autocomplete="off" />
+          @if (assetForm.controls.serialNumber.hasError('required') && assetForm.controls.serialNumber.touched) {
+            <mat-error>Serial Number is required</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Brand</mat-label>
+          <input matInput type="text" formControlName="brand" autocomplete="off" />
+          @if (assetForm.controls.brand.hasError('required') && assetForm.controls.brand.touched) {
+            <mat-error>Brand is required</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Model</mat-label>
+          <input matInput type="text" formControlName="model" autocomplete="off" />
+          @if (assetForm.controls.model.hasError('required') && assetForm.controls.model.touched) {
+            <mat-error>Model is required</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Acquisition Cost</mat-label>
+          <input matInput type="number" min="0" step="0.01" formControlName="acquisitionCost" autocomplete="off" />
+          @if (assetForm.controls.acquisitionCost.hasError('required') && assetForm.controls.acquisitionCost.touched) {
+            <mat-error>Acquisition Cost is required</mat-error>
+          } @else if (assetForm.controls.acquisitionCost.hasError('min') && assetForm.controls.acquisitionCost.touched) {
+            <mat-error>Acquisition Cost must be greater than zero</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Category</mat-label>
+          <mat-select formControlName="categoryId">
+            @for (category of categories(); track category.id) {
+              <mat-option [value]="category.id">{{ category.name }}</mat-option>
+            }
+          </mat-select>
+          @if (assetForm.controls.categoryId.hasError('required') && assetForm.controls.categoryId.touched) {
+            <mat-error>Category is required</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-card-actions class="asset-form-actions">
+          <button mat-flat-button type="submit" color="primary" [disabled]="isLoading() || assetForm.invalid">
+            @if (isLoading()) {
+              <mat-progress-spinner diameter="20" mode="indeterminate" />
+            } @else {
+              {{ isEditMode() ? 'Save' : 'Create' }}
+            }
+          </button>
+          <button mat-flat-button type="button" [disabled]="isLoading()" (click)="cancel()">Cancel</button>
+        </mat-card-actions>
+
+        @if (errorMessage()) {
+          <p class="asset-form-error" role="alert">{{ errorMessage() }}</p>
+        }
+      </form>
+    </mat-card-content>
+  </mat-card>
+</section>

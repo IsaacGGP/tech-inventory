@@ -1,0 +1,16 @@
+<mat-toolbar class="header-toolbar">
+  <button mat-icon-button type="button" aria-label="Abrir menú" (click)="toggleSidebar()">
+    <mat-icon>menu</mat-icon>
+  </button>
+  <h1 class="header-title">Tech Inventory System</h1>
+
+  <button
+    mat-icon-button
+    type="button"
+    aria-label="Cerrar sesión"
+    matTooltip="Cerrar sesión"
+    (click)="logout()"
+  >
+    <mat-icon>logout</mat-icon>
+  </button>
+</mat-toolbar>

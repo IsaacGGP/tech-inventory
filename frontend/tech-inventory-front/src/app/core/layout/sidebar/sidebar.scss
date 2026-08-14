@@ -1,0 +1,13 @@
+mat-nav-list {
+  width: 240px;
+  height: 100%;
+
+  a {
+    gap: 8px;
+    padding-top:16px; //resvisar solo este espaciado
+  }
+}
+
+.active-link{
+    background:rgba(0,0,0,.05);
+}
