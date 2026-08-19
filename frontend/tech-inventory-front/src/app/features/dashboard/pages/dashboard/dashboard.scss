@@ -34,3 +34,11 @@
   font-size: 32px;
   font-weight: 600;
 }
+
+.dashboard-status {
+  margin: 0;
+}
+
+.dashboard-status--error {
+  color: var(--mat-sys-error);
+}

@@ -187,6 +187,12 @@ public class AssetUseCaseImpl implements AssetUseCase {
 
     @Override
     @Transactional(readOnly = true)
+    public List<Asset> getAssetsForReportPreview() {
+        return assetRepository.findAll();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public String generateAssetReport(String username) {
         List<Asset> assets = assetRepository.findAll();
         return reportGenerator.generateAssetReport(assets, username);

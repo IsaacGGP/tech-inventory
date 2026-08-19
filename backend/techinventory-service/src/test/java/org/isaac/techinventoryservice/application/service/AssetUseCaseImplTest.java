@@ -192,6 +192,16 @@ class AssetUseCaseImplTest {
                 .hasMessageContaining("minCost must not be greater than maxCost");
     }
 
+    @Test
+    void getAssetsForReportPreview_returnsAllAssets() {
+        when(assetRepository.findAll()).thenReturn(List.of(asset(), asset()));
+
+        List<Asset> result = assetUseCase.getAssetsForReportPreview();
+
+        assertThat(result).hasSize(2);
+        verify(assetRepository).findAll();
+    }
+
     private void assertPageablePassed(AssetRepositoryPort repository, int page, int size, String sortProperty) {
         ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
         verify(repository).findAll(captor.capture());

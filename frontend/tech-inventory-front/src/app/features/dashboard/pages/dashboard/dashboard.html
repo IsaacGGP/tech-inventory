@@ -1,33 +1,39 @@
 <section class="dashboard">
   <h1 class="dashboard-title">Dashboard</h1>
 
-  <div class="dashboard-cards">
-    <mat-card class="dashboard-card">
-      <mat-card-content>
-        <span class="dashboard-card-label">Total de activos</span>
-        <span class="dashboard-card-value">12</span>
-      </mat-card-content>
-    </mat-card>
+  @if (isLoading()) {
+    <p class="dashboard-status" role="status">Cargando métricas...</p>
+  } @else if (error()) {
+    <p class="dashboard-status dashboard-status--error" role="alert">{{ error() }}</p>
+  } @else {
+    <div class="dashboard-cards">
+      <mat-card class="dashboard-card">
+        <mat-card-content>
+          <span class="dashboard-card-label">Total de activos</span>
+          <span class="dashboard-card-value">{{ totalAssets() }}</span>
+        </mat-card-content>
+      </mat-card>
 
-    <mat-card class="dashboard-card">
-      <mat-card-content>
-        <span class="dashboard-card-label">Total de categorías</span>
-        <span class="dashboard-card-value">5</span>
-      </mat-card-content>
-    </mat-card>
+      <mat-card class="dashboard-card">
+        <mat-card-content>
+          <span class="dashboard-card-label">Total de categorías</span>
+          <span class="dashboard-card-value">{{ totalCategories() }}</span>
+        </mat-card-content>
+      </mat-card>
 
-    <mat-card class="dashboard-card">
-      <mat-card-content>
-        <span class="dashboard-card-label">Activos disponibles</span>
-        <span class="dashboard-card-value">8</span>
-      </mat-card-content>
-    </mat-card>
+      <mat-card class="dashboard-card">
+        <mat-card-content>
+          <span class="dashboard-card-label">Activos disponibles</span>
+          <span class="dashboard-card-value">{{ availableAssets() }}</span>
+        </mat-card-content>
+      </mat-card>
 
-    <mat-card class="dashboard-card">
-      <mat-card-content>
-        <span class="dashboard-card-label">Activos asignados</span>
-        <span class="dashboard-card-value">4</span>
-      </mat-card-content>
-    </mat-card>
-  </div>
+      <mat-card class="dashboard-card">
+        <mat-card-content>
+          <span class="dashboard-card-label">Activos asignados</span>
+          <span class="dashboard-card-value">{{ assignedAssets() }}</span>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
 </section>

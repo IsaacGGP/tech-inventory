@@ -6,6 +6,7 @@ import org.isaac.techinventoryservice.domain.model.Asset;
 import org.springframework.data.domain.Page;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -27,6 +28,8 @@ public interface AssetUseCase {
     Optional<Asset> getAssetById(UUID technicalId);
 
     Page<Asset> getAssets(int page, int size, AssetSearchCriteria criteria, String sortBy, String sortDirection);
+
+    List<Asset> getAssetsForReportPreview();
 
     String generateAssetReport(String username);
 }

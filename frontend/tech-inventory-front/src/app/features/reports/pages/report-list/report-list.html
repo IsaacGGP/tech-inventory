@@ -1,1 +1,95 @@
-<p>report-list works!</p>
+<section class="report-list">
+  <h1 class="report-list-title">Reports</h1>
+
+  <mat-card class="report-card">
+    <mat-card-content>
+      <div class="report-actions">
+        <p class="report-description">Aquí se visualizarán los reportes del inventario.</p>
+        <button
+          class="report-generate-button"
+          mat-flat-button
+          type="button"
+          color="primary"
+          [disabled]="isGenerating()"
+          (click)="generateReport()"
+        >
+          {{ isGenerating() ? 'Generating...' : 'Generate Report' }}
+        </button>
+      </div>
+
+      @if (error()) {
+        <p class="report-status report-status--error" role="alert">{{ error() }}</p>
+      } @else if (generatedFileName()) {
+        <p class="report-status report-status--success" role="status">Report generated successfully.</p>
+      } @else if (isGenerating()) {
+        <p class="report-status" role="status">Generating report...</p>
+      }
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="report-preview-card">
+    <mat-card-content>
+      <div class="report-preview-header">
+        <h2 class="report-preview-title">Preview</h2>
+        @if (!isPreviewLoading() && !previewError() && previewAssets().length > 0) {
+          <span class="report-preview-total">Total: {{ previewTotal() }}</span>
+        }
+      </div>
+
+      @if (isPreviewLoading()) {
+        <p class="report-status" role="status">Loading preview...</p>
+      } @else if (previewError()) {
+        <p class="report-status report-status--error" role="alert">{{ previewError() }}</p>
+      } @else if (previewAssets().length === 0) {
+        <p class="report-empty-state">No reports available.</p>
+      } @else {
+        <div class="report-table-container">
+          <table mat-table [dataSource]="previewAssets()" class="report-table">
+            <ng-container matColumnDef="inventoryFolio">
+              <th mat-header-cell *matHeaderCellDef>Folio</th>
+              <td mat-cell *matCellDef="let item">{{ item.inventoryFolio }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="serialNumber">
+              <th mat-header-cell *matHeaderCellDef>Serial</th>
+              <td mat-cell *matCellDef="let item">{{ item.serialNumber }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="brand">
+              <th mat-header-cell *matHeaderCellDef>Marca</th>
+              <td mat-cell *matCellDef="let item">{{ item.brand }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="model">
+              <th mat-header-cell *matHeaderCellDef>Modelo</th>
+              <td mat-cell *matCellDef="let item">{{ item.model }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Estado</th>
+              <td mat-cell *matCellDef="let item">{{ item.status }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="acquisitionCost">
+              <th mat-header-cell *matHeaderCellDef>Costo</th>
+              <td mat-cell *matCellDef="let item">{{ item.acquisitionCost }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="entryDate">
+              <th mat-header-cell *matHeaderCellDef>Fecha</th>
+              <td mat-cell *matCellDef="let item">{{ item.entryDate }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="category">
+              <th mat-header-cell *matHeaderCellDef>Categoría</th>
+              <td mat-cell *matCellDef="let item">{{ item.category }}</td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          </table>
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+</section>

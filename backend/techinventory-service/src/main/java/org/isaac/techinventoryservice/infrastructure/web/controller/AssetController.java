@@ -10,6 +10,8 @@ import org.isaac.techinventoryservice.infrastructure.web.dto.request.UpdateAsset
 import org.isaac.techinventoryservice.infrastructure.web.dto.request.UpdateAssetStatusRequest;
 import org.isaac.techinventoryservice.infrastructure.web.dto.response.AssetResponse;
 import org.isaac.techinventoryservice.infrastructure.web.dto.response.PagedAssetResponse;
+import org.isaac.techinventoryservice.infrastructure.web.dto.response.ReportPreviewAssetResponse;
+import org.isaac.techinventoryservice.infrastructure.web.dto.response.ReportPreviewResponse;
 import org.isaac.techinventoryservice.infrastructure.web.dto.response.ReportResponse;
 import org.isaac.techinventoryservice.infrastructure.web.mapper.AssetWebMapper;
 import org.springframework.data.domain.Page;
@@ -90,6 +92,15 @@ public class AssetController {
                 "application/zip",
                 base64Content
         );
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/report/preview")
+    public ResponseEntity<ReportPreviewResponse> getReportPreview() {
+        List<ReportPreviewAssetResponse> assets = assetUseCase.getAssetsForReportPreview().stream()
+                .map(assetWebMapper::toPreviewResponse)
+                .toList();
+        ReportPreviewResponse response = new ReportPreviewResponse(assets, assets.size());
         return ResponseEntity.ok(response);
     }
 
