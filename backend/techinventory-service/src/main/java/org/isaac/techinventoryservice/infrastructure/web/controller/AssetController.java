@@ -84,9 +84,15 @@ public class AssetController {
     }
 
     @GetMapping("/report")
-    public ResponseEntity<ReportResponse> generateReport(Authentication authentication) {
+    public ResponseEntity<ReportResponse> generateReport(Authentication authentication,
+                                                         @RequestParam(name = "search", required = false) String search,
+                                                         @RequestParam(name = "categoryId", required = false) Long categoryId,
+                                                         @RequestParam(name = "status", required = false) AssetStatus status,
+                                                         @RequestParam(name = "minCost", required = false) BigDecimal minCost,
+                                                         @RequestParam(name = "maxCost", required = false) BigDecimal maxCost) {
         String username = authentication.getName();
-        String base64Content = assetUseCase.generateAssetReport(username);
+        AssetSearchCriteria criteria = new AssetSearchCriteria(search, categoryId, status, minCost, maxCost);
+        String base64Content = assetUseCase.generateAssetReport(username, criteria);
         ReportResponse response = new ReportResponse(
                 "assets.zip",
                 "application/zip",
@@ -96,8 +102,14 @@ public class AssetController {
     }
 
     @GetMapping("/report/preview")
-    public ResponseEntity<ReportPreviewResponse> getReportPreview() {
-        List<ReportPreviewAssetResponse> assets = assetUseCase.getAssetsForReportPreview().stream()
+    public ResponseEntity<ReportPreviewResponse> getReportPreview(
+            @RequestParam(name = "search", required = false) String search,
+            @RequestParam(name = "categoryId", required = false) Long categoryId,
+            @RequestParam(name = "status", required = false) AssetStatus status,
+            @RequestParam(name = "minCost", required = false) BigDecimal minCost,
+            @RequestParam(name = "maxCost", required = false) BigDecimal maxCost) {
+        AssetSearchCriteria criteria = new AssetSearchCriteria(search, categoryId, status, minCost, maxCost);
+        List<ReportPreviewAssetResponse> assets = assetUseCase.getAssetsForReportPreview(criteria).stream()
                 .map(assetWebMapper::toPreviewResponse)
                 .toList();
         ReportPreviewResponse response = new ReportPreviewResponse(assets, assets.size());

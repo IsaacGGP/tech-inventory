@@ -9,6 +9,8 @@ import { ReportResponse } from '../../../../core/models/report/report-response.m
 import { ReportDownloadService } from '../../../../core/services/report/report-download.service';
 import { ReportPreviewAsset } from '../../../../core/models/report/report-preview-asset.model';
 import { ReportPreviewResponse } from '../../../../core/models/report/report-preview-response.model';
+import { CategoryResponse } from '../../../../core/models/category/category-response.model';
+import { AssetStatus } from '../../../../core/models/asset/asset-status.enum';
 
 describe('ReportList', () => {
   let component: ReportList;
@@ -18,12 +20,18 @@ describe('ReportList', () => {
 
   const reportUrl = `${environment.apiUrl}/assets/report`;
   const previewUrl = `${environment.apiUrl}/assets/report/preview`;
+  const categoriesUrl = `${environment.apiUrl}/categories`;
 
   const mockReport: ReportResponse = {
     fileName: 'assets.zip',
     contentType: 'application/zip',
     content: 'base64-content',
   };
+
+  const mockCategories: CategoryResponse[] = [
+    { id: 1, name: 'Laptop', prefixCode: 'LAP' },
+    { id: 2, name: 'Monitor', prefixCode: 'MON' },
+  ];
 
   const mockPreviewAssets: ReportPreviewAsset[] = [
     {
@@ -74,6 +82,9 @@ describe('ReportList', () => {
     httpTesting
       .expectOne((req) => req.method === 'GET' && req.url === previewUrl)
       .flush(mockPreview);
+    httpTesting
+      .expectOne((req) => req.method === 'GET' && req.url === categoriesUrl)
+      .flush(mockCategories);
     await fixture.whenStable();
   });
 
@@ -103,6 +114,10 @@ describe('ReportList', () => {
     const description = fixture.nativeElement.querySelector('.report-description');
     expect(description).toBeTruthy();
     expect(description.textContent).toContain('reportes');
+  });
+
+  it('should load the categories on initialisation', () => {
+    expect(component.categories()).toEqual(mockCategories);
   });
 
   it('should render the informative initial state when the preview has no records', () => {
@@ -135,6 +150,14 @@ describe('ReportList', () => {
     req.flush(mockPreview);
 
     expect(component.isPreviewLoading()).toBe(false);
+  });
+
+  it('should request the preview without filter parameters by default', () => {
+    component.loadPreview();
+
+    const req = httpTesting.expectOne((req) => req.method === 'GET' && req.url === previewUrl);
+    expect(req.request.params.keys().length).toBe(0);
+    req.flush(mockPreview);
   });
 
   it('should render the preview data in the table', () => {
@@ -172,6 +195,113 @@ describe('ReportList', () => {
     expect(fixture.nativeElement.querySelector('.report-status--error')).toBeTruthy();
   });
 
+  it('should request the preview with the search filter', () => {
+    component.searchTerm.set('Dell');
+    component.applyFilters();
+
+    const req = httpTesting.expectOne((req) => req.method === 'GET' && req.url === previewUrl);
+    expect(req.request.params.get('search')).toBe('Dell');
+    req.flush(mockPreview);
+
+    expect(component.previewAssets()).toEqual(mockPreviewAssets);
+  });
+
+  it('should request the preview with the category filter', () => {
+    component.selectedCategoryId.set(2);
+    component.applyFilters();
+
+    const req = httpTesting.expectOne((req) => req.method === 'GET' && req.url === previewUrl);
+    expect(req.request.params.get('categoryId')).toBe('2');
+    req.flush(mockPreview);
+  });
+
+  it('should request the preview with the status filter', () => {
+    component.selectedStatus.set(AssetStatus.AVAILABLE);
+    component.applyFilters();
+
+    const req = httpTesting.expectOne((req) => req.method === 'GET' && req.url === previewUrl);
+    expect(req.request.params.get('status')).toBe('AVAILABLE');
+    req.flush(mockPreview);
+  });
+
+  it('should request the preview with min and max cost filters', () => {
+    component.minCost.set('500');
+    component.maxCost.set('1500');
+    component.applyFilters();
+
+    const req = httpTesting.expectOne((req) => req.method === 'GET' && req.url === previewUrl);
+    expect(req.request.params.get('minCost')).toBe('500');
+    expect(req.request.params.get('maxCost')).toBe('1500');
+    req.flush(mockPreview);
+  });
+
+  it('should combine multiple filters in a single preview request', () => {
+    component.searchTerm.set('Dell');
+    component.selectedCategoryId.set(1);
+    component.selectedStatus.set(AssetStatus.ASSIGNED);
+    component.minCost.set('100');
+    component.maxCost.set('2000');
+    component.applyFilters();
+
+    const req = httpTesting.expectOne((req) => req.method === 'GET' && req.url === previewUrl);
+    expect(req.request.params.get('search')).toBe('Dell');
+    expect(req.request.params.get('categoryId')).toBe('1');
+    expect(req.request.params.get('status')).toBe('ASSIGNED');
+    expect(req.request.params.get('minCost')).toBe('100');
+    expect(req.request.params.get('maxCost')).toBe('2000');
+    req.flush(mockPreview);
+  });
+
+  it('should clear all filters and reload the preview without filters', () => {
+    component.searchTerm.set('Dell');
+    component.selectedCategoryId.set(1);
+    component.selectedStatus.set(AssetStatus.ASSIGNED);
+    component.minCost.set('100');
+    component.maxCost.set('2000');
+    component.applyFilters();
+    httpTesting
+      .expectOne((req) => req.method === 'GET' && req.url === previewUrl)
+      .flush(mockPreview);
+
+    component.clearFilters();
+
+    expect(component.searchTerm()).toBe('');
+    expect(component.selectedCategoryId()).toBeNull();
+    expect(component.selectedStatus()).toBeNull();
+    expect(component.minCost()).toBe('');
+    expect(component.maxCost()).toBe('');
+    expect(component.filterError()).toBe('');
+
+    const req = httpTesting.expectOne((req) => req.method === 'GET' && req.url === previewUrl);
+    expect(req.request.params.keys().length).toBe(0);
+    req.flush(mockPreview);
+  });
+
+  it('should not request the preview when min cost is negative', () => {
+    component.minCost.set('-5');
+    component.applyFilters();
+
+    expect(component.filterError()).toContain('negativo');
+    httpTesting.expectNone((req) => req.method === 'GET' && req.url === previewUrl);
+  });
+
+  it('should not request the preview when max cost is negative', () => {
+    component.maxCost.set('-1');
+    component.applyFilters();
+
+    expect(component.filterError()).toContain('negativo');
+    httpTesting.expectNone((req) => req.method === 'GET' && req.url === previewUrl);
+  });
+
+  it('should not request the preview when min cost is greater than max cost', () => {
+    component.minCost.set('2000');
+    component.maxCost.set('1000');
+    component.applyFilters();
+
+    expect(component.filterError()).toContain('mayor');
+    httpTesting.expectNone((req) => req.method === 'GET' && req.url === previewUrl);
+  });
+
   it('should send a GET to /assets/report without extra parameters when generating the report', () => {
     component.generateReport();
 
@@ -181,6 +311,26 @@ describe('ReportList', () => {
 
     expect(component.isGenerating()).toBe(false);
     expect(component.generatedFileName()).toBe('assets.zip');
+  });
+
+  it('should send the current filters when generating the report', () => {
+    component.searchTerm.set('Dell');
+    component.selectedCategoryId.set(1);
+    component.selectedStatus.set(AssetStatus.AVAILABLE);
+    component.minCost.set('100');
+    component.maxCost.set('2000');
+
+    component.generateReport();
+
+    const req = httpTesting.expectOne((req) => req.method === 'GET' && req.url === reportUrl);
+    expect(req.request.params.get('search')).toBe('Dell');
+    expect(req.request.params.get('categoryId')).toBe('1');
+    expect(req.request.params.get('status')).toBe('AVAILABLE');
+    expect(req.request.params.get('minCost')).toBe('100');
+    expect(req.request.params.get('maxCost')).toBe('2000');
+    req.flush(mockReport);
+
+    expect(downloadSpy).toHaveBeenCalledWith(mockReport);
   });
 
   it('should set the loading state while the report is being generated', () => {

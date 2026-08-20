@@ -29,6 +29,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -193,13 +194,75 @@ class AssetUseCaseImplTest {
     }
 
     @Test
-    void getAssetsForReportPreview_returnsAllAssets() {
-        when(assetRepository.findAll()).thenReturn(List.of(asset(), asset()));
+    void getAssetsForReportPreview_withNullCriteria_returnsAllAssets() {
+        when(assetRepository.findAll(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(asset(), asset())));
 
-        List<Asset> result = assetUseCase.getAssetsForReportPreview();
+        List<Asset> result = assetUseCase.getAssetsForReportPreview(null);
 
         assertThat(result).hasSize(2);
-        verify(assetRepository).findAll();
+        verify(assetRepository).findAll(any(Pageable.class));
+        verify(assetRepository, never()).searchAssets(any(), any(Pageable.class));
+    }
+
+    @Test
+    void getAssetsForReportPreview_withEmptyCriteria_returnsAllAssets() {
+        when(assetRepository.findAll(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(asset())));
+
+        List<Asset> result = assetUseCase.getAssetsForReportPreview(criteria(""));
+
+        assertThat(result).hasSize(1);
+        verify(assetRepository).findAll(any(Pageable.class));
+        verify(assetRepository, never()).searchAssets(any(), any(Pageable.class));
+    }
+
+    @Test
+    void getAssetsForReportPreview_withFilters_usesSearchAssets() {
+        when(assetRepository.searchAssets(any(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(asset())));
+
+        List<Asset> result = assetUseCase.getAssetsForReportPreview(criteria("Dell"));
+
+        assertThat(result).hasSize(1);
+        ArgumentCaptor<AssetSearchCriteria> criteriaCaptor = ArgumentCaptor.forClass(AssetSearchCriteria.class);
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(assetRepository).searchAssets(criteriaCaptor.capture(), pageableCaptor.capture());
+        assertThat(criteriaCaptor.getValue().normalizedSearch()).isEqualTo("Dell");
+        assertThat(pageableCaptor.getValue().isUnpaged()).isTrue();
+        verify(assetRepository, never()).findAll(any(Pageable.class));
+    }
+
+    @Test
+    void getAssetsForReportPreview_withNegativeMinCost_throws() {
+        assertThatThrownBy(() -> assetUseCase.getAssetsForReportPreview(criteria(null, new BigDecimal("-1"), null)))
+                .isInstanceOf(DomainException.class)
+                .hasMessageContaining("minCost must not be negative");
+        verify(assetRepository, never()).findAll(any(Pageable.class));
+    }
+
+    @Test
+    void generateAssetReport_usesFilteredAssets() {
+        Asset filtered = asset();
+        when(assetRepository.searchAssets(any(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(filtered)));
+
+        String result = assetUseCase.generateAssetReport("admin", criteria("Dell"));
+
+        assertThat(result).isNull();
+        ArgumentCaptor<List<Asset>> assetsCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<String> usernameCaptor = ArgumentCaptor.forClass(String.class);
+        verify(reportGenerator).generateAssetReport(assetsCaptor.capture(), usernameCaptor.capture());
+        assertThat(assetsCaptor.getValue()).containsExactly(filtered);
+        assertThat(usernameCaptor.getValue()).isEqualTo("admin");
+    }
+
+    @Test
+    void generateAssetReport_withNegativeMinCost_throws() {
+        assertThatThrownBy(() -> assetUseCase.generateAssetReport("admin", criteria(null, new BigDecimal("-1"), null)))
+                .isInstanceOf(DomainException.class)
+                .hasMessageContaining("minCost must not be negative");
+        verify(reportGenerator, never()).generateAssetReport(any(), anyString());
     }
 
     private void assertPageablePassed(AssetRepositoryPort repository, int page, int size, String sortProperty) {

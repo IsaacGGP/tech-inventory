@@ -116,6 +116,143 @@ class ReportPreviewIntegrationTest {
                 .andExpect(jsonPath("$.assets[0].technicalId").doesNotExist());
     }
 
+    @Test
+    void preview_withSearch_filtersAssets() throws Exception {
+        mockMvc.perform(get("/api/v1/assets/report/preview")
+                        .header("Authorization", bearerToken())
+                        .param("search", "dell"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.assets", hasSize(1)))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.assets[0].inventoryFolio").value("IT7-001"));
+    }
+
+    @Test
+    void preview_withCategoryId_filtersAssets() throws Exception {
+        mockMvc.perform(get("/api/v1/assets/report/preview")
+                        .header("Authorization", bearerToken())
+                        .param("categoryId", laptops.getId().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.assets", hasSize(1)))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.assets[0].inventoryFolio").value("IT7-001"));
+    }
+
+    @Test
+    void preview_withStatus_filtersAssets() throws Exception {
+        mockMvc.perform(get("/api/v1/assets/report/preview")
+                        .header("Authorization", bearerToken())
+                        .param("status", "ASSIGNED"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.assets", hasSize(1)))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.assets[0].inventoryFolio").value("IT7-002"));
+    }
+
+    @Test
+    void preview_withMinCost_filtersAssets() throws Exception {
+        mockMvc.perform(get("/api/v1/assets/report/preview")
+                        .header("Authorization", bearerToken())
+                        .param("minCost", "1000"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.assets", hasSize(1)))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.assets[0].inventoryFolio").value("IT7-001"));
+    }
+
+    @Test
+    void preview_withMaxCost_filtersAssets() throws Exception {
+        mockMvc.perform(get("/api/v1/assets/report/preview")
+                        .header("Authorization", bearerToken())
+                        .param("maxCost", "1000"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.assets", hasSize(1)))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.assets[0].inventoryFolio").value("IT7-002"));
+    }
+
+    @Test
+    void preview_withCombinedFilters_filtersAssets() throws Exception {
+        mockMvc.perform(get("/api/v1/assets/report/preview")
+                        .header("Authorization", bearerToken())
+                        .param("status", "AVAILABLE")
+                        .param("categoryId", laptops.getId().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.assets", hasSize(1)))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.assets[0].inventoryFolio").value("IT7-001"));
+    }
+
+    @Test
+    void preview_withNoMatchingResults_returnsEmptyList() throws Exception {
+        mockMvc.perform(get("/api/v1/assets/report/preview")
+                        .header("Authorization", bearerToken())
+                        .param("search", "nonexistent"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.assets", hasSize(0)))
+                .andExpect(jsonPath("$.totalElements").value(0));
+    }
+
+    @Test
+    void preview_withNegativeMinCost_returns400() throws Exception {
+        mockMvc.perform(get("/api/v1/assets/report/preview")
+                        .header("Authorization", bearerToken())
+                        .param("minCost", "-1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("minCost must not be negative"));
+    }
+
+    @Test
+    void preview_withNegativeMaxCost_returns400() throws Exception {
+        mockMvc.perform(get("/api/v1/assets/report/preview")
+                        .header("Authorization", bearerToken())
+                        .param("maxCost", "-1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("maxCost must not be negative"));
+    }
+
+    @Test
+    void preview_withMinCostGreaterThanMaxCost_returns400() throws Exception {
+        mockMvc.perform(get("/api/v1/assets/report/preview")
+                        .header("Authorization", bearerToken())
+                        .param("minCost", "2000")
+                        .param("maxCost", "1000"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("minCost must not be greater than maxCost"));
+    }
+
+    @Test
+    void report_withFilters_returns200WithZipMetadata() throws Exception {
+        mockMvc.perform(get("/api/v1/assets/report")
+                        .header("Authorization", bearerToken())
+                        .param("status", "AVAILABLE"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.fileName").value("assets.zip"))
+                .andExpect(jsonPath("$.contentType").value("application/zip"))
+                .andExpect(jsonPath("$.content").isNotEmpty());
+    }
+
+    @Test
+    void report_withNegativeMinCost_returns400() throws Exception {
+        mockMvc.perform(get("/api/v1/assets/report")
+                        .header("Authorization", bearerToken())
+                        .param("minCost", "-1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("minCost must not be negative"));
+    }
+
+    @Test
+    void preview_withoutToken_returns401() throws Exception {
+        mockMvc.perform(get("/api/v1/assets/report/preview"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void report_withoutToken_returns401() throws Exception {
+        mockMvc.perform(get("/api/v1/assets/report"))
+                .andExpect(status().isUnauthorized());
+    }
+
     private String bearerToken() {
         return "Bearer " + jwtService.generateToken("testuser", "ADMIN");
     }

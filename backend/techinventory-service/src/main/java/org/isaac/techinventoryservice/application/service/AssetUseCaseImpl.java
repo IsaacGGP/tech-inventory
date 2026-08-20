@@ -8,6 +8,7 @@ import org.isaac.techinventoryservice.application.port.output.InventoryFolioGene
 import org.isaac.techinventoryservice.application.port.output.ReportGeneratorPort;
 import org.isaac.techinventoryservice.domain.enums.AssetStatus;
 import org.isaac.techinventoryservice.domain.exception.DomainException;
+import org.isaac.techinventoryservice.domain.exception.ResourceNotFoundException;
 import org.isaac.techinventoryservice.domain.model.Asset;
 import org.isaac.techinventoryservice.domain.model.Category;
 import org.springframework.data.domain.Page;
@@ -57,13 +58,13 @@ public class AssetUseCaseImpl implements AssetUseCase {
     private Category getExistingCategory(Long categoryId) {
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() ->
-                        new DomainException("Category not found with id: " + categoryId));
+                        new ResourceNotFoundException("Category not found with id: " + categoryId));
     }
 
     private Asset getExistingAsset(UUID technicalId) {
         return assetRepository.findById(technicalId)
                 .orElseThrow(() ->
-                        new DomainException("Asset not found with id: " + technicalId));
+                        new ResourceNotFoundException("Asset not found with id: " + technicalId));
     }
 
     @Override
@@ -187,14 +188,22 @@ public class AssetUseCaseImpl implements AssetUseCase {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Asset> getAssetsForReportPreview() {
-        return assetRepository.findAll();
+    public List<Asset> getAssetsForReportPreview(AssetSearchCriteria criteria) {
+        return findAssetsForReport(criteria);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public String generateAssetReport(String username) {
-        List<Asset> assets = assetRepository.findAll();
+    public String generateAssetReport(String username, AssetSearchCriteria criteria) {
+        List<Asset> assets = findAssetsForReport(criteria);
         return reportGenerator.generateAssetReport(assets, username);
+    }
+
+    private List<Asset> findAssetsForReport(AssetSearchCriteria criteria) {
+        validateCostRange(criteria);
+        if (criteria == null || criteria.isEmpty()) {
+            return assetRepository.findAll(Pageable.unpaged()).getContent();
+        }
+        return assetRepository.searchAssets(criteria, Pageable.unpaged()).getContent();
     }
 }

@@ -29,7 +29,7 @@ public interface AssetUseCase {
 
     Page<Asset> getAssets(int page, int size, AssetSearchCriteria criteria, String sortBy, String sortDirection);
 
-    List<Asset> getAssetsForReportPreview();
+    List<Asset> getAssetsForReportPreview(AssetSearchCriteria criteria);
 
-    String generateAssetReport(String username);
+    String generateAssetReport(String username, AssetSearchCriteria criteria);
 }

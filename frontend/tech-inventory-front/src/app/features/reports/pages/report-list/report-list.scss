@@ -30,6 +30,22 @@
   gap: 16px;
 }
 
+.report-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.report-filter {
+  min-width: 160px;
+}
+
+.report-filter--wide {
+  flex: 1;
+  min-width: 220px;
+}
+
 .report-description {
   margin: 0;
   font-size: 14px;

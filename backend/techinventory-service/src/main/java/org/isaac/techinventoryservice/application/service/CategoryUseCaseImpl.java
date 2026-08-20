@@ -2,7 +2,7 @@ package org.isaac.techinventoryservice.application.service;
 
 import org.isaac.techinventoryservice.application.port.input.CategoryUseCase;
 import org.isaac.techinventoryservice.application.port.output.CategoryRepositoryPort;
-import org.isaac.techinventoryservice.domain.exception.DomainException;
+import org.isaac.techinventoryservice.domain.exception.ResourceNotFoundException;
 import org.isaac.techinventoryservice.domain.model.Category;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +30,7 @@ public class CategoryUseCaseImpl implements CategoryUseCase {
     @Transactional(readOnly = true)
     public Category getCategoryById(Long id) {
         return repository.findById(id)
-                .orElseThrow(() -> new DomainException("Category not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
     }
 
     @Override
